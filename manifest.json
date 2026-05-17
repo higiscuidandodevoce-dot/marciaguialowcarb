@@ -1,15 +1,28 @@
-{
-  "name": "Márcia Bartolomeu — Low Carb Guia",
-  "short_name": "Márcia Coach",
-  "description": "Low Carb Guia com Jejum Intermitente — by Márcia Bartolomeu @marcia.coach",
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#6B3FA0",
-  "theme_color": "#6B3FA0",
-  "orientation": "portrait-primary",
-  "lang": "pt-BR",
-  "icons": [
-    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
-  ]
-}
+const CACHE = 'marcia-lowcarb-v1';
+const FILES = [
+  '/marciaguialowcarb/',
+  '/marciaguialowcarb/index.html',
+  '/marciaguialowcarb/manifest.json',
+  '/marciaguialowcarb/icon-192.png',
+  '/marciaguialowcarb/icon-512.png'
+];
+
+self.addEventListener('install', e => {
+  e.waitUntil(
+    caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting())
+  );
+});
+
+self.addEventListener('activate', e => {
+  e.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+    ).then(() => self.clients.claim())
+  );
+});
+
+self.addEventListener('fetch', e => {
+  e.respondWith(
+    caches.match(e.request).then(cached => cached || fetch(e.request).catch(() => caches.match('/marciaguialowcarb/index.html')))
+  );
+});
